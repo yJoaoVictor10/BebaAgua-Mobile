@@ -1,23 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+
+// const DAILY_GOAL: number = 8; // Total diário de copos
 
 export default function App() {
-  
-  const[cups, setCups] = useState<number>(0);
-  
-  const [goalCups, setGoalCups] = useState<number>(1);
-  
-  const percentage:number = (cups/goalCups) * 100;
 
-  const removeCup = ()=>{
-      setCups(Math.max(0, cups - 1));
-  }
+  const [cups, setCups] = useState<number>(0);
+  const [dailyGoal, setDailyGoal] = useState<number>(8);
 
-  const addCup = ()=>{
-    setCups(Math.min(goalCups, cups + 1));
-  }
+  const percentage: number = (cups / dailyGoal) * 100;
 
+  const removeCup = () => {
+    if (cups > 0) {
+      setCups(prev => prev - 1);
+    }
+  };
+
+  const addCup = () => {
+    setCups(Math.min(dailyGoal, cups + 1));
+  };
 
   return (
     <View style={styles.container}>
@@ -25,69 +27,87 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.appTitle}>Beba Água 💧</Text>
         <Text style={styles.appSubtitle}>HIDRATAÇÃO DIÁRIA</Text>
-        <View style={styles.viewAddGoal}>
-          <Text>Meta diária</Text>
-          <View style={styles.buttonAddGoal}>
-            <TouchableOpacity onPress={()=> setGoalCups(goalCups - 1)}>
-                <Text>-</Text>  
-              </TouchableOpacity>
-            <TouchableOpacity onPress={()=> setGoalCups(goalCups + 1)}>
-                <Text>+</Text>
-            </TouchableOpacity>
-          </View>
-
-        </View>
-
       </View>
 
       {/* Seção Principal / Indicador Visual */}
       <View style={styles.content}>
 
-        <View style={styles.outerCircleWrapper}></View>
-
-       
-        {/* Círculo */}
-        <View style={styles.outerCircle}>
-          {/* Nível da água */}
-          <View style={[styles.waterLevel, {height: `${percentage}%`}]} />
-
-          {/* Quantidade de copos tomados */}
-          <Text style={styles.numberText}>{cups}</Text>
-          <Text style={styles.labelText}>COPOS</Text>
+        {/* Seção de ajuste da meta diária */}
+        <View style={styles.goalContainer}>
+            <TouchableOpacity
+              onPress={() => setDailyGoal(prev => Math.max(1, prev - 1))}
+              style={styles.goalButton}
+            >
+              <Text style={styles.goalButtonText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.goalText}>
+              Meta diária: {dailyGoal} copos
+            </Text>
+            <TouchableOpacity
+              onPress={() => setDailyGoal(prev => prev + 1)}
+              style={styles.goalButton}
+            >
+              <Text style={styles.goalButtonText}>+</Text>
+            </TouchableOpacity>
         </View>
 
-        {/* Feedback */}
-        <View style={styles.feedbackContainer}>
-            <Text style={[styles.statusText, cups >= goalCups && {color: '#059669'} ]}>{cups >= goalCups ? "Parabéns! Meta batida!" : `Faltam ${goalCups} copos para a meta.`}</Text>
-        {/* Barra de Progresso */}
-        <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBar, {width: `${percentage}%`}]}>
+        {/* Wrapper para permitir sombra em iOS e Android */}
+        <View style={styles.outerCircleWrapper}>
+          {/* Círculo */}
+          <View style={styles.outerCircle}>
+            {/* Nível da água */}
+            <View style={[
+              styles.waterLevel,
+              { height: `${percentage}%`}
+              ]} />
+
+            {/* Quantidade de copos tomados */}
+            <Text style={styles.numberText}>{cups}</Text>
+            <Text style={styles.labelText}>COPOS</Text>
           </View>
         </View>
-        </View>
 
+         {/* Feedback */}
+         <View style={styles.feedbackContainer}>
+          <Text style={[
+            styles.statusText,
+            cups >= dailyGoal && { color: '#059669' }
+          ]}>{
+            cups >= dailyGoal 
+            ? "Parabéns! Meta batida! 🎉" 
+            : `Faltam ${dailyGoal - cups} copos para a meta.`
+          }</Text>
+
+          {/* Barra de progresso */}
+          <View style={styles.progressBarBackground}>
+            <View style={[styles.progressBar, {width: `${percentage}%`}]} />
+          </View>
+
+         </View>
 
       </View>
-
-
 
       {/* Botões / Rodapé */}
       <View style={styles.footer}>
+
         {/* Botão Principal */}
-        <TouchableOpacity style={styles.mainButton} onPress={()=> addCup()}>
-          <Text style={styles.mainButtonText}>BEBER 1 COPO (200 ML)</Text>
+        <TouchableOpacity style={styles.mainButton} onPress={addCup}>
+          <Text style={styles.mainButtonText}>BEBER 1 COPO (200ML)</Text>
         </TouchableOpacity>
-        {/* Botões de ajuste */}
+
+        {/* Botões de Ajuste */}
         <View style={styles.adjustmentArea}>
-          <TouchableOpacity style={styles.adjustButton} onPress={removeCup} >
-              <Text style={styles.adjustButtonText}>Remover</Text>
+          <TouchableOpacity style={styles.adjustButton} onPress={removeCup}>
+            <Text style={styles.adjustButtonText}>Remover</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.adjustButton} onPress={()=> setCups(0)}>
-            <Text style={styles.adjustButtonText}>Reeiniciar</Text>
+
+          <TouchableOpacity style={styles.adjustButton} onPress={() => setCups(0)}>
+            <Text style={styles.adjustButtonText}>Reiniciar</Text>
           </TouchableOpacity>
         </View>
 
       </View>
+      
       <StatusBar style="auto" />
     </View>
   );
@@ -121,17 +141,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-
   outerCircleWrapper: {
+    elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 10,
     backgroundColor: "#FFF",
     borderRadius: 110,
   },
-
   outerCircle: {
     width: 220,
     height: 220,
@@ -141,8 +159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    backgroundColor: "#FFF"
-
+    backgroundColor: '#FFF',
   },
   waterLevel: {
     position: 'absolute',
@@ -152,94 +169,103 @@ const styles = StyleSheet.create({
     backgroundColor: '#0EA5E9',
     opacity: 0.2,
   },
-
   numberText: {
     fontSize: 72,
     fontWeight: '900',
     color: '#0284C7',
   },
-
   labelText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#7DD3FC',
   },
-
   progressBarBackground: {
     width: '100%',
     height: 12,
     backgroundColor: '#E0F2FE',
     borderRadius: 6,
     marginTop: 15,
+    overflow: 'hidden',
   },
-
-  progressBar:{
+  progressBar: {
     height: '100%',
-    width: '70%',
     backgroundColor: '#0284C7',
     borderRadius: 6,
   },
-
   feedbackContainer: {
     marginTop: 40,
     alignItems: 'center',
     width: '80%',
   },
-
   statusText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#475569',
     textAlign: 'center',
   },
-
   footer: {
     width: '100%',
     paddingHorizontal: 30,
     marginBottom: 20,
   },
-
   mainButton: {
     backgroundColor: '#0284C7',
     paddingVertical: 22,
     borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 5, // elevation para sombra (Android)
+    elevation: 5,
   },
-
   mainButtonText: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: '900',
   },
-
   adjustmentArea: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
   },
-
   adjustButton: {
     padding: 10,
   },
-
   adjustButtonText: {
-    color: '#94A3BB',
+    color: '#94A3B8',
     fontSize: 14,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
-
-  viewAddGoal:{
-    marginTop: 10
-  },
-
-  buttonAddGoal: {
+  goalContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    marginBottom: 20,
+    gap: 12,
+    alignItems: 'center', //Alinha no eixo transversal (perpendicula à flexDirection)
+    justifyContent: 'center', //Alinha no eixo principal (direção da flexDirection)
+  },
+  goalButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#38BDF8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  goalButtonText: {
+    color: '#FFF',
+    fontSize: 25,
+    fontWeight: 'bold',
+  },
+  goalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#94A3B8',
   }
 });
