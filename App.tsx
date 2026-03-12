@@ -2,20 +2,22 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
-const DAILY_GOAL:number = 8; // Total diário de copos
-
 export default function App() {
-
+  
   const[cups, setCups] = useState<number>(0);
-
-  const percentage:number = (cups/DAILY_GOAL) * 100;
+  
+  const [goalCups, setGoalCups] = useState<number>(1);
+  
+  const percentage:number = (cups/goalCups) * 100;
 
   const removeCup = ()=>{
-    if(cups > 0){
-      setCups(cups - 1);
-    }
+      setCups(Math.max(0, cups - 1));
   }
+
+  const addCup = ()=>{
+    setCups(Math.min(goalCups, cups + 1));
+  }
+
 
   return (
     <View style={styles.container}>
@@ -23,6 +25,19 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.appTitle}>Beba Água 💧</Text>
         <Text style={styles.appSubtitle}>HIDRATAÇÃO DIÁRIA</Text>
+        <View style={styles.viewAddGoal}>
+          <Text>Meta diária</Text>
+          <View style={styles.buttonAddGoal}>
+            <TouchableOpacity onPress={()=> setGoalCups(goalCups - 1)}>
+                <Text>-</Text>  
+              </TouchableOpacity>
+            <TouchableOpacity onPress={()=> setGoalCups(goalCups + 1)}>
+                <Text>+</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+
       </View>
 
       {/* Seção Principal / Indicador Visual */}
@@ -43,7 +58,7 @@ export default function App() {
 
         {/* Feedback */}
         <View style={styles.feedbackContainer}>
-            <Text style={[styles.statusText, cups >= DAILY_GOAL && {color: '#059669'} ]}>{cups >= DAILY_GOAL ? "Parabéns! Meta batida!" : `Faltam ${DAILY_GOAL - cups} copos para a meta.`}</Text>
+            <Text style={[styles.statusText, cups >= goalCups && {color: '#059669'} ]}>{cups >= goalCups ? "Parabéns! Meta batida!" : `Faltam ${goalCups} copos para a meta.`}</Text>
         {/* Barra de Progresso */}
         <View style={styles.progressBarBackground}>
           <View style={[styles.progressBar, {width: `${percentage}%`}]}>
@@ -59,7 +74,7 @@ export default function App() {
       {/* Botões / Rodapé */}
       <View style={styles.footer}>
         {/* Botão Principal */}
-        <TouchableOpacity style={styles.mainButton} onPress={()=> setCups(cups + 1)}>
+        <TouchableOpacity style={styles.mainButton} onPress={()=> addCup()}>
           <Text style={styles.mainButtonText}>BEBER 1 COPO (200 ML)</Text>
         </TouchableOpacity>
         {/* Botões de ajuste */}
@@ -217,5 +232,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+  },
+
+  viewAddGoal:{
+    marginTop: 10
+  },
+
+  buttonAddGoal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 });
